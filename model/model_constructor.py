@@ -19,6 +19,13 @@ class Text2SQL(nn.Module):
         encodings, mask, gp_loss = self.encoder(batch)
         h0 = self.encoder2decoder(encodings, mask=mask)
         loss = self.decoder.score(encodings, mask, h0, batch)
+
+        # print(f'encodings: {encodings}')
+        # print(f'encodings.shape: {encodings.shape}')
+        # print(f'mask: {mask}')
+        # print(f'mask.shape: {mask.shape}')
+        # print(f'h0: {h0}')
+        # print(f'loss: {loss}')
         return loss, gp_loss
 
     def parse(self, batch, beam_size):

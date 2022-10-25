@@ -27,7 +27,7 @@ class Example():
             cls.word_vocab = Vocab(padding=True, unk=True, boundary=True, default=UNK,
                 filepath='./pretrained_models/glove.42b.300d/vocab.txt', specials=SCHEMA_TYPES) # word vocab for glove.42B.300d
         else:
-            cls.tokenizer = AutoTokenizer.from_pretrained(os.path.join('./pretrained_models', plm))
+            cls.tokenizer = AutoTokenizer.from_pretrained(plm)
             cls.word_vocab = cls.tokenizer.get_vocab()
         cls.relation_vocab = Vocab(padding=False, unk=False, boundary=False, iterable=RELATIONS, default=None)
         cls.graph_factory = GraphFactory(cls.method, cls.relation_vocab)

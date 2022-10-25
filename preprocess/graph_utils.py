@@ -63,7 +63,10 @@ class GraphProcessor():
         ex = self.process_rgatsql(ex, db, relation)
         graph = ex['graph']
         lg = graph.local_g.line_graph(backtracking=False)
+        
         # prevent information propagate through matching edges
+        # no-match를 위해 모든 match를 제거?... 왜?
+        
         match_ids = [idx for idx, r in enumerate(graph.global_edges) if 'match' in r[2]]
         src, dst, eids = lg.edges(form='all', order='eid')
         eids = [e for u, v, e in zip(src.tolist(), dst.tolist(), eids.tolist()) if not (u in match_ids and v in match_ids)]

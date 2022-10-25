@@ -37,9 +37,11 @@ class GraphFactory():
         # extract local relations (used in msde), global_edges = local_edges + nonlocal_edges
         local_enum, global_enum = graph.local_edges.size(0), graph.global_edges.size(0)
         graph.local_mask = torch.tensor([1] * local_enum + [0] * (global_enum - local_enum), dtype=torch.bool)
+        
         return graph
 
     def lgesql(self, ex, db):
+        # lgesql은 line graph가 추가되는 차이점이 존재
         graph = self.rgatsql(ex, db)
         # add line graph
         graph.lg = ex['graph'].lg

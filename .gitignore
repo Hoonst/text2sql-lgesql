@@ -11,3 +11,15 @@ data
 log
 exp
 *.sbatch
+
+*.bin
+wandb/
+RAT_SQL.egg-info
+logdir/
+data/
+third_party/
+wandb/
+tf_runs/
+pretrained_models/
+exp/
+data/

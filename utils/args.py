@@ -30,7 +30,7 @@ def add_argument_base(arg_parser):
     arg_parser.add_argument('--warmup_ratio', type=float, default=0.1, help='warmup steps proportion')
     arg_parser.add_argument('--lr_schedule', default='linear', choices=['constant', 'linear', 'ratsql', 'cosine'], help='lr scheduler')
     arg_parser.add_argument('--eval_after_epoch', default=40, type=int, help='Start to evaluate after x epoch')
-    arg_parser.add_argument('--load_optimizer', action='store_true', default=False, help='Whether to load optimizer state')
+    # arg_parser.add_argument('--load_optimizer', action='store_true', default=False, help='Whether to load optimizer state')
     arg_parser.add_argument('--max_epoch', type=int, default=100, help='terminate after maximum epochs')
     arg_parser.add_argument('--max_norm', default=5., type=float, help='clip gradients')
     return arg_parser
@@ -42,7 +42,7 @@ def add_argument_encoder(arg_parser):
         help='how to integrate local and non-local relations: mmc -> multi-head multi-view concatenation ; msde -> mixed static and dynamic embeddings')
     arg_parser.add_argument('--output_model', choices=['without_pruning', 'with_pruning'], default='without_pruning', help='whether add graph pruning')
     arg_parser.add_argument('--plm', type=str, choices=['bert-base-uncased', 'bert-large-uncased', 'bert-large-uncased-whole-word-masking',
-        'roberta-base', 'roberta-large', 'grappa_large_jnt', 'electra-base-discriminator', 'electra-large-discriminator'], help='pretrained model name')
+        'roberta-base', 'roberta-large', 'grappa_large_jnt', 'electra-base-discriminator', 'google/electra-large-discriminator', 'microsoft/deberta-large', 'microsoft/deberta-v3-large'], help='pretrained model name')
     arg_parser.add_argument('--subword_aggregation', choices=['mean-pooling', 'max-pooling', 'attentive-pooling'], default='attentive-pooling', help='aggregate subword feats from PLM')
     arg_parser.add_argument('--schema_aggregation', choices=['mean-pooling', 'max-pooling', 'attentive-pooling', 'head+tail'], default='head+tail', help='aggregate schema words feats')
     arg_parser.add_argument('--dropout', type=float, default=0.2, help='feature dropout rate')
@@ -55,6 +55,10 @@ def add_argument_encoder(arg_parser):
     arg_parser.add_argument('--relation_share_heads', action='store_true')
     arg_parser.add_argument('--score_function', choices=['affine', 'bilinear', 'biaffine', 'dot'], default='affine', help='graph pruning score function')
     arg_parser.add_argument('--smoothing', type=float, default=0.15, help='label smoothing factor for graph pruning')
+    arg_parser.add_argument('--global_drop_edge_p', type=float, default=0.0)
+    arg_parser.add_argument('--local_drop_edge_p', type=float, default=0.0)
+    arg_parser.add_argument('--global_drop_node_p', type=float, default=0.0)
+    arg_parser.add_argument('--local_drop_node_p', type=float, default=0.0)
     return arg_parser
 
 def add_argument_decoder(arg_parser):

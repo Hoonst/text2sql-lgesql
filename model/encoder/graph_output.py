@@ -77,6 +77,7 @@ class GraphOutputLayerWithPruning(nn.Module):
         self.graph_pruning = GraphPruning(self.hidden_size, args.num_heads, args.dropout, args.score_function)
 
     def forward(self, inputs, batch):
+        # import IPython; IPython.embed(); exit(1);
         outputs = inputs.new_zeros(len(batch), batch.mask.size(1), self.hidden_size)
         outputs = outputs.masked_scatter_(batch.mask.unsqueeze(-1), inputs)
 
@@ -84,6 +85,8 @@ class GraphOutputLayerWithPruning(nn.Module):
             g = batch.graph
             question = inputs.masked_select(g.question_mask.unsqueeze(-1)).view(-1, self.hidden_size)
             schema = inputs.masked_select(g.schema_mask.unsqueeze(-1)).view(-1, self.hidden_size)
+            # problem should be coming from here
+            # since loss is calculated and about gp is not touched
             loss = self.graph_pruning(question, schema, g.gp, g.node_label)
             return outputs, batch.mask, loss
         else:

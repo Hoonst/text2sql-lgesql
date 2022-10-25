@@ -2,6 +2,7 @@
 import copy, math
 import torch, dgl
 import dgl.function as fn
+from dgl import DropEdge
 import torch.nn as nn
 import torch.nn.functional as F
 from model.model_utils import Registrable, FFN
@@ -23,7 +24,7 @@ class RGATSQL(nn.Module):
         else:
             self.relation_embed = nn.ModuleList([nn.Embedding(args.relation_num, edim) for _ in range(self.num_layers)])
         gnn_layer = MultiViewRGATLayer if self.graph_view == 'multiview' else RGATLayer
-        self.gnn_layers = nn.ModuleList([gnn_layer(args.gnn_hidden_size, edim, num_heads=args.num_heads, feat_drop=args.dropout)
+        self.gnn_layers = nn.ModuleList([gnn_layer(args.gnn_hidden_size, edim, num_heads=args.num_heads, feat_drop=args.dropout, local_drop_edge_p=args.local_drop_edge_p, global_drop_edge_p=args.global_drop_edge_p)
             for _ in range(self.num_layers)])
 
     def forward(self, x, batch):
@@ -51,7 +52,7 @@ class RGATSQL(nn.Module):
 
 class RGATLayer(nn.Module):
 
-    def __init__(self, ndim, edim, num_heads=8, feat_drop=0.2):
+    def __init__(self, ndim, edim, num_heads=8, feat_drop=0.2, local_drop_edge_p=0.0, global_drop_edge_p=0.0):
         super(RGATLayer, self).__init__()
         self.ndim, self.edim = ndim, edim
         self.num_heads = num_heads
@@ -63,6 +64,9 @@ class RGATLayer(nn.Module):
         self.layernorm = nn.LayerNorm(self.ndim)
         self.feat_dropout = nn.Dropout(p=feat_drop)
         self.ffn = FFN(self.ndim)
+
+        self.local_transform = DropEdge(p=local_drop_edge_p)
+        self.global_transform = DropEdge(p=global_drop_edge_p)
 
     def forward(self, x, lgx, g):
         """ @Params:
@@ -86,9 +90,11 @@ class RGATLayer(nn.Module):
 
     def propagate_attention(self, g):
         # Compute attention score
+        # apply_edge: apply designated function to the edges
         g.apply_edges(src_sum_edge_mul_dst('k', 'q', 'e', 'score'))
         g.apply_edges(scaled_exp('score', math.sqrt(self.d_k)))
         # Update node state
+        # update all the nodes
         g.update_all(src_sum_edge_mul_edge('v', 'e', 'score', 'v'), fn.sum('v', 'wv'))
         g.update_all(fn.copy_edge('score', 'score'), fn.sum('score', 'z'), div_by_z('wv', 'z', 'o'))
         out_x = g.ndata['o']
@@ -104,6 +110,12 @@ class MultiViewRGATLayer(RGATLayer):
                 local_g: dgl.graph, a local graph for node update
                 global_g: dgl.graph, a complete graph for node update
         """
+        print('Before')
+        print(f'local_lgx: {local_lgx}')
+        print(f'global_lgx: {global_lgx}')
+        print(f'local_g: {local_g}')
+        print(f'global_g: {global_g}')
+
         # pre-mapping q/k/v affine
         q, k, v = self.affine_q(self.feat_dropout(x)), self.affine_k(self.feat_dropout(x)), self.affine_v(self.feat_dropout(x))
         q, k, v = q.view(-1, self.num_heads, self.d_k), k.view(-1, self.num_heads, self.d_k), v.view(-1, self.num_heads, self.d_k)
@@ -112,13 +124,24 @@ class MultiViewRGATLayer(RGATLayer):
             local_g.ndata['v'] = v[:, :self.num_heads // 2]
             local_g.edata['e'] = local_lgx.view(-1, self.num_heads // 2, self.d_k) if local_lgx.size(-1) == self.d_k * self.num_heads // 2 else \
                 local_lgx.unsqueeze(1).expand(-1, self.num_heads // 2, -1)
+
+            # local_gt = self.local_transform(local_g)
             out_x1 = self.propagate_attention(local_g)
         with global_g.local_scope():
             global_g.ndata['q'], global_g.ndata['k'] = q[:, self.num_heads // 2:], k[:, self.num_heads // 2:]
             global_g.ndata['v'] = v[:, self.num_heads // 2:]
             global_g.edata['e'] = global_lgx.view(-1, self.num_heads // 2, self.d_k) if global_lgx.size(-1) == self.d_k * self.num_heads // 2 else \
                 global_lgx.unsqueeze(1).expand(-1, self.num_heads // 2, -1)
+            # global_gt = self.global_transform(global_g)
             out_x2 = self.propagate_attention(global_g)
+        print('='*50)
+        print('after')
+        print(f'local_lgx: {local_lgx}')
+        print(f'global_lgx: {global_lgx}')
+        print(f'local_g: {local_g}')
+        print(f'global_g: {global_g}')
+        print(f'out_x1: {out_x1}')
+        print(f'out_x2: {out_x2}')
         out_x = torch.cat([out_x1, out_x2], dim=1)
         out_x = self.layernorm(x + self.affine_o(out_x.view(-1, self.num_heads * self.d_k)))
         out_x = self.ffn(out_x)

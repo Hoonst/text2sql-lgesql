@@ -22,4 +22,6 @@ class Text2SQLEncoder(nn.Module):
     def forward(self, batch):
         outputs = self.input_layer(batch)
         outputs = self.hidden_layer(outputs, batch)
+        # print(f'hidden_layer outputs {outputs}')
+        # print(f'hidden_layer outputs.shape {outputs.shape}')
         return self.output_layer(outputs, batch)

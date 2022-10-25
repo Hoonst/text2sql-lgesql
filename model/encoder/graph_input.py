@@ -47,8 +47,8 @@ class GraphInputLayerPLM(nn.Module):
     def __init__(self, plm='bert-base-uncased', hidden_size=256, dropout=0., subword_aggregation='mean',
             schema_aggregation='head+tail', lazy_load=False):
         super(GraphInputLayerPLM, self).__init__()
-        self.plm_model = AutoModel.from_config(AutoConfig.from_pretrained(os.path.join('./pretrained_models', plm))) \
-            if lazy_load else AutoModel.from_pretrained(os.path.join('./pretrained_models', plm))
+        self.plm_model = AutoModel.from_config(AutoConfig.from_pretrained(plm)) \
+            if lazy_load else AutoModel.from_pretrained(plm)
         self.config = self.plm_model.config
         self.subword_aggregation = SubwordAggregation(self.config.hidden_size, subword_aggregation=subword_aggregation)
         self.dropout_layer = nn.Dropout(p=dropout)
