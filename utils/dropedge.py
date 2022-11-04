@@ -41,6 +41,7 @@ class DropEdge(BaseTransform):
     def __init__(self, p=0.5):
         self.p = p
         self.dist = Bernoulli(p)
+        # 
 
     def __call__(self, g):
         # Fast path

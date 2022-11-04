@@ -21,10 +21,15 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LambdaLR
 from torch.nn.utils import clip_grad_norm_
 from collections import defaultdict
+import torch.distributed as dist
+
 
 logger = logging.getLogger(__name__)
 
 def set_optimizer(model, args, num_warmup_steps, num_training_steps, last_epoch=-1):
+    # if args.local_rank == 0:
+    #     import IPython; IPython.embed(); exit(1);
+    # barrier()
     plm = hasattr(model.encoder.input_layer, 'plm_model')
     if plm and args.layerwise_decay <= 0.: # fix plm params
         for n, p in model.named_parameters():

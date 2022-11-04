@@ -77,7 +77,6 @@ class GraphOutputLayerWithPruning(nn.Module):
         self.graph_pruning = GraphPruning(self.hidden_size, args.num_heads, args.dropout, args.score_function)
 
     def forward(self, inputs, batch):
-        # import IPython; IPython.embed(); exit(1);
         outputs = inputs.new_zeros(len(batch), batch.mask.size(1), self.hidden_size)
         outputs = outputs.masked_scatter_(batch.mask.unsqueeze(-1), inputs)
 

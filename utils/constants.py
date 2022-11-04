@@ -17,3 +17,21 @@ RELATIONS = ['question-question-dist' + str(i) if i != 0 else 'question-question
     'table-question-exactmatch', 'table-question-partialmatch', 'table-question-nomatch'] + \
     ['question-question-generic', 'table-table-generic', 'column-column-generic', 'table-column-generic', 'column-table-generic'] + \
     ['*-*-identity', '*-question-generic', 'question-*-generic', '*-table-generic', 'table-*-generic', '*-column-generic', 'column-*-generic']
+
+'''
+local_relations = 
+{'question-table-exactmatch', 'table-*-generic', 'column-question-nomatch', 
+'question-column-nomatch', 'table-column-pk', 'table-question-nomatch', 'question-column-partialmatch', 
+'column-question-valuematch', 'question-column-exactmatch', 'question-*-generic', 
+'question-question-dist-1', 'column-table-has', 'question-table-nomatch', 'column-column-fkr', 
+'column-question-exactmatch', 'question-question-dist1', 'column-question-partialmatch', 
+'*-question-generic', 'table-question-exactmatch', 'question-column-valuematch', 'column-column-fk', 
+'table-column-has', 'table-question-partialmatch', 'question-table-partialmatch', 'column-table-pk'}
+
+nonlocal_relations = {'column-*-generic', 'table-table-fkr', 'question-question-generic', '*-column-generic', 
+'column-column-identity', '*-*-identity', '*-table-generic', 'table-column-generic', 'table-table-generic', 
+'table-table-fk', 'question-question-dist2', 'question-question-dist-2', 'column-column-generic', 'column-column-sametable', 
+'table-table-fkb', 'question-question-identity', 'column-table-generic', 'table-table-identity'}
+
+'''
+

@@ -9,6 +9,8 @@ from utils.dropedge import DropEdge
 from model.model_utils import Registrable, FFN
 from model.encoder.rgatsql import RGATLayer, MultiViewRGATLayer
 from model.encoder.functions import *
+from torch.cuda.amp import autocast, GradScaler
+use_fp16 = True
 
 @Registrable.register('lgesql')
 class LGESQL(nn.Module):
@@ -72,6 +74,12 @@ class LGESQL(nn.Module):
         * global_edges:
         tensor([27, 27, 27,  ..., 10, 10,  9], device='cuda:0')
 
+        * lg (line graph)
+        Graph(num_nodes=4079, 
+                num_edges=69647,      
+                ndata_schemes={}      
+                edata_schemes={'_ID': Scheme(shape=(), dtype=torch.int32)})
+
         '''
         # copy를 안해서 발생하는 문제?
         global_lgx = self.relation_embed(batch.graph.global_edges)
@@ -108,20 +116,20 @@ class LGESQL(nn.Module):
                     if not l:
                         local_eids_to_remove.append(local_i)
                     elif l:
-                        local_eids_to_preserve.append(local_i)            
+                        local_eids_to_preserve.append(local_i)   
 
-            # local_mask는 global_index, 즉 한번 global_transform (dropedge)를 겪은 그래프에
-            # 살아 남은 edge들 중, local edge인 애들만을 살린다.
+            '''
+            local_mask는 global_index, 즉 한번 global_transform (dropedge)를 겪은 그래프에
+            살아 남은 edge들 중, local edge인 애들만을 살린다.
 
-            # local_mask: 모든 global_edge들 중, dropedge 이후 원래 local 이었던 요소
-            # local_index: local_lgx를 필터링하기 위하여 True, False로 
+            local_mask: 모든 global_edge들 중, dropedge 이후 원래 local 이었던 요소
+            local_index: local_lgx를 필터링하기 위하여 True, False로 
 
-            # import IPython; IPython.embed(); exit(1);
+            해당 global_lgx로부터 local_lgx를 만들어야 한다
+            그럼 local_mask가 필요한데 local_mask는 어떻게 만드는가?
+            '''
 
             local_g.remove_edges(local_eids_to_remove)
-
-            # 해당 global_lgx로부터 local_lgx를 만들어야 한다
-            # 그럼 local_mask가 필요한데 local_mask는 어떻게 만드는가?
 
             src_ids, dst_ids = src_ids[local_eids_to_preserve], dst_ids[local_eids_to_preserve]   
             
@@ -137,21 +145,6 @@ class LGESQL(nn.Module):
             src, dst, eids = lg.edges(form='all', order='eid')
             eids = [e for u, v, e in zip(src.tolist(), dst.tolist(), eids.tolist()) if not (u in match_ids and v in match_ids)]
             lg = lg.edge_subgraph(eids, preserve_nodes=True).remove_self_loop().add_self_loop()
-
-            # if 0 in lg.in_degrees().tolist() or 0 in lg.out_degrees().tolist():
-            #     print(lg)
-            #     import IPython; IPython.embed(); exit();
-                
-            
-            # if 0 in local_g.in_degrees().tolist() or 0 in local_g.out_degrees().tolist():
-            #     print(local_g)
-            #     import IPython; IPython.embed(); exit();
-                
-
-            # if 0 in global_g.in_degrees().tolist() or 0 in global_g.out_degrees().tolist():
-            #     print(global_g)
-            #     import IPython; IPython.embed(); exit();
-                
             # print(f'global_g: {global_g}')
             # print(f'local_g: {local_g}')
             # print(f'len(global_edges): {global_edges}')
@@ -163,14 +156,8 @@ class LGESQL(nn.Module):
             lg = batch.graph.lg
                 
         for i in range(self.num_layers):
-            if 0 in local_g.in_degrees().tolist() or 0 in local_g.out_degrees().tolist():
-                print(local_g)
-                import IPython; IPython.embed(); exit();
             x, local_lgx = self.gnn_layers[i](x, local_lgx, global_lgx, local_g, global_g, lg, src_ids, dst_ids)
             
-            
-            # print(f'x: {x}')
-            # print(f'local_lgx: {local_lgx}')
             if self.graph_view == 'msde':
                 # update local edge embeddings in the global edge embeddings matrix
                 global_lgx = global_lgx.masked_scatter_(mask.unsqueeze(-1), local_lgx)

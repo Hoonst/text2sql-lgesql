@@ -10,13 +10,14 @@ import random, torch, dgl
 import numpy as np
 
 def set_logger(exp_path, testing=False):
+    
     logFormatter = logging.Formatter('%(asctime)s - %(message)s') #('%(asctime)s - %(levelname)s - %(message)s')
     logger = logging.getLogger('mylogger')
     logger.setLevel(logging.DEBUG)
     if testing:
-        fileHandler = logging.FileHandler('%s/log_test.txt' % (exp_path), mode='w')
+        fileHandler = logging.FileHandler('%s/log_test.txt' % (exp_path), mode='a')
     else:
-        fileHandler = logging.FileHandler('%s/log_train.txt' % (exp_path), mode='w')
+        fileHandler = logging.FileHandler('%s/log_train.txt' % (exp_path), mode='a')
     fileHandler.setFormatter(logFormatter)
     logger.addHandler(fileHandler)
     consoleHandler = logging.StreamHandler(sys.stdout)

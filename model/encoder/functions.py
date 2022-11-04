@@ -9,6 +9,13 @@ def src_dot_dst(src_field, dst_field, out_field):
 
 def src_sum_edge_mul_dst(src_field, dst_field, e_field, out_field):
     def func(edges):
+        '''
+        - src_field: k
+        - dst_field: q
+        - e_field: e
+        - out_field: score
+
+        '''
         return {out_field: ((edges.src[src_field] + edges.data[e_field]) * edges.dst[dst_field]).sum(-1, keepdim=True)}
 
     return func
@@ -28,6 +35,6 @@ def src_sum_edge_mul_edge(src_field, e_field1, e_field2, out_field):
 
 def div_by_z(in_field, norm_field, out_field):
     def func(nodes):
-        return {out_field: nodes.data[in_field] / nodes.data[norm_field]}
+        return {out_field: nodes.data[in_field] / (nodes.data[norm_field]+1e6)}
 
     return func

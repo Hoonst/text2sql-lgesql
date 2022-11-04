@@ -1,4 +1,3 @@
-#!/usr/bin/python3.8
 task=lgesql_large
 seed=999
 device=0
@@ -55,13 +54,15 @@ l2=0.1
 smoothing=0.15
 warmup_ratio=0.1
 lr_schedule=linear
-eval_after_epoch=40
+eval_after_epoch=20
 max_epoch=$7
 max_norm=5
 beam_size=5
 distributed=$8
+num_workers=8
+master_port=$9
 
-python3 scripts/text2sql.py --task $task --seed $seed --device $device $testing --read_model_path $read_model_path \
+python -m torch.distributed.launch --nproc_per_node 4 --master_port $master_port scripts/text2sql.py --task $task --seed $seed --device $device $testing --read_model_path $read_model_path \
     --plm $plm --gnn_hidden_size $gnn_hidden_size --dropout $dropout --attn_drop $attn_drop --att_vec_size $att_vec_size \
     --model $model --output_model $output_model --local_and_nonlocal $local_and_nonlocal --score_function $score_function $relation_share_heads \
     --subword_aggregation $subword_aggregation --schema_aggregation $schema_aggregation --gnn_num_layers $gnn_num_layers --num_heads $num_heads $sep_cxt \
@@ -70,5 +71,5 @@ python3 scripts/text2sql.py --task $task --seed $seed --device $device $testing 
     $no_context_feeding $no_parent_production_embed $no_parent_field_embed $no_parent_field_type_embed $no_parent_state \
     --batch_size $batch_size --grad_accumulate $grad_accumulate --lr $lr --l2 $l2 --warmup_ratio $warmup_ratio --lr_schedule $lr_schedule --eval_after_epoch $eval_after_epoch \
     --smoothing $smoothing --layerwise_decay $layerwise_decay --max_epoch $max_epoch --max_norm $max_norm --beam_size $beam_size \
-    --global_drop_edge_p $global_drop_edge_p --local_drop_edge_p $local_drop_edge_p --global_drop_node_p $global_drop_node_p --local_drop_node_p $local_drop_node_p
-    --distributed $distributed
+    --global_drop_edge_p $global_drop_edge_p --local_drop_edge_p $local_drop_edge_p --global_drop_node_p $global_drop_node_p --local_drop_node_p $local_drop_node_p \
+    --distributed $distributed --num_workers $num_workers

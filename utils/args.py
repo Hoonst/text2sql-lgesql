@@ -33,6 +33,11 @@ def add_argument_base(arg_parser):
     # arg_parser.add_argument('--load_optimizer', action='store_true', default=False, help='Whether to load optimizer state')
     arg_parser.add_argument('--max_epoch', type=int, default=100, help='terminate after maximum epochs')
     arg_parser.add_argument('--max_norm', default=5., type=float, help='clip gradients')
+    arg_parser.add_argument('--distributed', type=str, default='no')
+    arg_parser.add_argument('--local_rank', type=int, default=0, help='local rank')
+    arg_parser.add_argument('--num_workers', type=int, default=0)
+    arg_parser.add_argument('--amp', action='store_true')
+    
     return arg_parser
 
 def add_argument_encoder(arg_parser):
