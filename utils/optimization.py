@@ -27,9 +27,6 @@ import torch.distributed as dist
 logger = logging.getLogger(__name__)
 
 def set_optimizer(model, args, num_warmup_steps, num_training_steps, last_epoch=-1):
-    # if args.local_rank == 0:
-    #     import IPython; IPython.embed(); exit(1);
-    # barrier()
     plm = hasattr(model.encoder.input_layer, 'plm_model')
     if plm and args.layerwise_decay <= 0.: # fix plm params
         for n, p in model.named_parameters():
