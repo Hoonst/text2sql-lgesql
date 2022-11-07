@@ -223,7 +223,7 @@ if not args.testing:
                         epoch_loss += loss.item()
                         epoch_gp_loss += gp_loss.item()
                         # print("Minibatch loss: %.4f" % (loss.item()))
-                        loss += gp_loss
+                        loss = torch.add(loss, gp_loss)
 
                     scaler.scale(loss).backward()
 
@@ -242,7 +242,7 @@ if not args.testing:
                     epoch_loss += loss.item()
                     epoch_gp_loss += gp_loss.item()
                     # print("Minibatch loss: %.4f" % (loss.item()))
-                    loss += gp_loss
+                    loss = torch.add(loss, gp_loss)
                     loss.backward()
                     if count == args.grad_accumulate or j + step_size >= nsamples:
                         count = 0
@@ -262,7 +262,7 @@ if not args.testing:
                         epoch_loss += loss.item()
                         epoch_gp_loss += gp_loss.item()
                         # print("Minibatch loss: %.4f" % (loss.item()))
-                        loss += gp_loss
+                        loss = torch.add(loss, gp_loss)
 
                     scaler.scale(loss).backward()
 
@@ -283,7 +283,6 @@ if not args.testing:
                     epoch_loss += loss.item()
                     epoch_gp_loss += gp_loss.item()
                     # print("Minibatch loss: %.4f" % (loss.item()))
-                    
                     
                     # loss += gp_loss
                     loss = torch.add(loss, gp_loss)

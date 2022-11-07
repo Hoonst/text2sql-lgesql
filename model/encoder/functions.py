@@ -35,6 +35,8 @@ def src_sum_edge_mul_edge(src_field, e_field1, e_field2, out_field):
 
 def div_by_z(in_field, norm_field, out_field):
     def func(nodes):
-        return {out_field: nodes.data[in_field] / (nodes.data[norm_field]+1e6)}
+        # return {out_field: nodes.data[in_field] / (nodes.data[norm_field]+1e-6)}
+        # 해당 line에 1e-6을 더하지 않으면 forward pass 중에 nan으로 입력이 변함
+        return {out_field: nodes.data[in_field] / (nodes.data[norm_field]+1e-6)}
 
     return func

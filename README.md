@@ -91,3 +91,43 @@ Dev and test **EXACT MATCH ACC** in the official [leaderboard](https://yale-lily
 ## Acknowledgements
 
 We would like to thank Tao Yu, Yusen Zhang and Bo Pang for running evaluations on our submitted models. We are also grateful to the flexible semantic parser [TranX](https://github.com/pcyin/tranX) that inspires our works.
+
+## Conducted Experiments (Hoonst)
+모든 실험의 절차는 다음과 같음
+``` bash
+bash my_scripts/run_plm_train.sh $GPU_ID                    # Train Step
+bash my_scripts/run_plm_train_ddp.sh $GPU_ID                # Train Step (DDP)
+
+bash evaluation_format.sh                        # Format Evaluated Results
+```
+LGESQL은 Training이 수행될 때 Validation Data Prediction을 미리 저장해두기 때문에 훈련이 끊어지지 않는 이상 evaluation을 수행할 필요는 없음
+
+### Train Parameters
+훈련에 필요한 파라미터는 run/run_lgesql_plm.sh & run_lgesql_plm_ddp.sh에 포함되어 있음
+
+해당하는 bash script에 대한 하이퍼 파라미터를 my_scripts/run_plm_train.sh & run_plm_train_ddp.sh에서 전달받아서 수행
+
+즉, 변경하고자 하는 파라미터에 대하여 run/.sh에서 파라미터로 받을 수 있도록 설정한 뒤, my_scripts/.sh에서 자유로이 변형하면 됨
+
+* **plm_version**
+    * "bert-large-uncased-whole-word-masking"
+    * "google/electra-large-discriminator" - ELECTRA를 활용하기 위해선 plm_lr을 1e-4로 변경 필요 (직접 실험하지는 않았지만, 문헌 과 다른 구현체의 파라미터 참고했을때의 수치)
+    * lr을 3e-6으로 설정하게 되면 지속적으로 성능 하락 발생
+    * "microsoft/deberta-v3-large"
+    * "microsoft/deberta-large"
+* **local_and_nonlocal**
+    * local & nonlocal relation을 integreation하는 방식의 차이
+    * (mmc / msde)
+* **layer**
+    * GNN Layer의 Oversmoothing 현상이 Text-to-SQL에서도 나타나는 지 실험
+    * 32 Layer에서 성능 하락 발생
+* **global_drop_edge_p**
+    * 코드 내에서 DropEdge의 확률을 부여하는 데 초기에는 Local과 Global Graph에 대하여 분리하여 Drop해야 하는 것으로 파악하여
+    local_drop_edge_p도 존재하지만, local_drop_edge_p는 연산 과정에서 활용되지 않음
+    * model/encoder/lgesql.py > class LGESQL > def forward()
+    * forward에서 Graph의 DropEdge가 적용될 수 있도록 구성
+    * global_drop_edge_p가 0 이상이여야 실행
+* **distributed**
+    * ('DDP' / 'no')
+    * DDP를 아예 코드에서 활용하지 않을 경우를 대비해서 문자로 파라미터를 받도록 설정
+* **max_epoch**
